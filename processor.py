@@ -37,10 +37,8 @@ class Matrix:
         return '\n'.join([' '.join(map(str, i)) for i in self.matrix])
 
     def __multiply(self, other):
-        def __dot(col, row):
-            return sum([i * j for i, j in zip(col, row)])
-        rotated_other = [[*r][::1] for r in zip(*other.matrix)]
-        return [[__dot(self.matrix[a], rotated_other[b]) for b in range(other.cols)] for a in range(self.rows)]
+        return [[sum([self.matrix[i][k] * other.matrix[k][j] for k in range(self.cols)])
+                 for j in range(other.cols)] for i in range(self.rows)]
 
     @staticmethod
     def __input_matrix():
@@ -48,20 +46,46 @@ class Matrix:
         print('Enter matrix:')
         return [[literal_eval(i) for i in input().split()] for _ in range(rows)]
 
+    def transposition_main_diag(self):
+        return [[row[i] for row in self.matrix] for i in range(len(self.matrix))]
 
-def menu():
-    while True:
-        print('1. Add matrices', '2. Multiply matrix by a constant', '3. Multiply matrices', '0. Exit', sep='\n')
-        user_input = input('Your choice: ')
-        if user_input == '0':
-            exit()
-        elif user_input == '1':
+    def transposition_side_diag(self):
+        self.matrix = [[*r][::-1] for r in zip(*self.matrix)]
+        return self.transposition_horz_line()
+
+    def transposition_vert_line(self):
+        return [i[::-1] for i in self.matrix]
+
+    def transposition_horz_line(self):
+        return [i for i in self.matrix[::-1]]
+
+
+def transpose_menu():
+    print('1. Main diagonal', '2. Side diagonal', '3. Vertical line', '4. Horizontal line', sep='\n')
+    user_input = input('Your choice: ')
+    if user_input == '1':
+        print(Matrix(Matrix().transposition_main_diag()))
+    elif user_input == '2':
+        print(Matrix(Matrix().transposition_side_diag()))
+    elif user_input == '3':
+        print(Matrix(Matrix().transposition_vert_line()))
+    elif user_input == '4':
+        print(Matrix(Matrix().transposition_horz_line()))
+
+
+def main_menu():
+    msg = '1. Add matrices\n2. Multiply matrix by a constant\n3. Multiply matrices\n' \
+          '4. Transpose matrix\n0. Exit\nYour choice: '
+    while (user_input := input(msg)) != '0':
+        if user_input == '1':
             print(Matrix() + Matrix())
         elif user_input == '2':
             print(Matrix() * literal_eval(input()))
         elif user_input == '3':
             print(Matrix() * Matrix())
+        elif user_input == '4':
+            transpose_menu()
 
 
 if __name__ == '__main__':
-    menu()
+    main_menu()
