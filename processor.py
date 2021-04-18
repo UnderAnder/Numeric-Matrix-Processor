@@ -40,61 +40,80 @@ class Matrix:
         return [[sum([self.matrix[i][k] * other.matrix[k][j] for k in range(self.cols)])
                  for j in range(other.cols)] for i in range(self.rows)]
 
+    def transposition_main_diag(self):
+        return Matrix([[row[i] for row in self.matrix] for i in range(self.rows)])
+
+    def transposition_side_diag(self):
+        return Matrix(list([*zip(*self.matrix[::-1])][::-1]))
+
+    def transposition_vert_line(self):
+        return Matrix([i[::-1] for i in self.matrix])
+
+    def transposition_horz_line(self):
+        return Matrix([i for i in self.matrix[::-1]])
+
+    def determinant(self):
+        if self.cols != self.rows:
+            raise MatrixDimensionError
+        return Matrix.__calc_determinant(self.matrix)
+
+    def inverse(self):
+        m = self.matrix
+        if self.rows != self.cols:
+            raise MatrixDimensionError
+        if self.cols == 1:
+            return 1 / m[0][0]
+        elif self.rows == 2:
+            det = self.determinant()
+            if det == 0:
+                raise MatrixDimensionError("The inverse matrix can’t be found, determinant is 0")
+            return [[m[1][1] / det, -1 * m[0][1] / det], [-1 * m[1][0] / det, m[0][0] / det]]
+        elif (det := self.determinant()) != 0:
+            cofactors = [[(-1 if (x + y) % 2 else 1) * self.__calc_determinant(self.__minor(m, x, y))
+                          for y in range(self.rows)] for x in range(self.rows)]
+            cofactor_matrix = Matrix(cofactors).transposition_main_diag()
+            return cofactor_matrix * (1 / det)
+        else:
+            return "This matrix doesn't have an inverse."
+
+    @staticmethod
+    def __minor(matrix, i, j):
+        return [row[:j] + row[j + 1:] for row in (matrix[:i] + matrix[i + 1:])]
+
+    @staticmethod
+    def __calc_determinant(matrix):
+        if len(matrix) == 1:
+            return matrix[0][0]
+        if len(matrix) == 2:
+            return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+        determinant = 0
+        for c in range(len(matrix)):
+            determinant += ((-1) ** c) * matrix[0][c] * Matrix.__calc_determinant(Matrix.__minor(matrix, 0, c))
+        return determinant
+
     @staticmethod
     def __input_matrix():
         rows, cols = map(int, input('Enter size of matrix: ').split())
         print('Enter matrix:')
         return [[literal_eval(i) for i in input().split()] for _ in range(rows)]
 
-    def transposition_main_diag(self):
-        return [[row[i] for row in self.matrix] for i in range(len(self.matrix))]
-
-    def transposition_side_diag(self):
-        self.matrix = [[*r][::-1] for r in zip(*self.matrix)]
-        return self.transposition_horz_line()
-
-    def transposition_vert_line(self):
-        return [i[::-1] for i in self.matrix]
-
-    def transposition_horz_line(self):
-        return [i for i in self.matrix[::-1]]
-
-    def determinant(self):
-        if self.cols != self.rows:
-            raise MatrixDimensionError
-
-        def minor(matrix, i, j):
-            return [row[:j] + row[j+1:] for row in (matrix[:i] + matrix[i + 1:])]
-
-        def calc_determinant(matrix):
-            if len(matrix) == 1:
-                return matrix[0][0]
-            if len(matrix) == 2:
-                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
-            determinant = 0
-            for c in range(len(matrix)):
-                determinant += ((-1)**c) * matrix[0][c] * calc_determinant(minor(matrix, 0, c))
-            return determinant
-
-        return calc_determinant(self.matrix)
-
 
 def transpose_menu():
     print('1. Main diagonal', '2. Side diagonal', '3. Vertical line', '4. Horizontal line', sep='\n')
     user_input = input('Your choice: ')
     if user_input == '1':
-        print(Matrix(Matrix().transposition_main_diag()))
+        print(Matrix().transposition_main_diag())
     elif user_input == '2':
-        print(Matrix(Matrix().transposition_side_diag()))
+        print(Matrix().transposition_side_diag())
     elif user_input == '3':
-        print(Matrix(Matrix().transposition_vert_line()))
+        print(Matrix().transposition_vert_line())
     elif user_input == '4':
-        print(Matrix(Matrix().transposition_horz_line()))
+        print(Matrix().transposition_horz_line())
 
 
 def main_menu():
     msg = '1. Add matrices\n2. Multiply matrix by a constant\n3. Multiply matrices\n' \
-          '4. Transpose matrix\n5. Calculate a determinant\n0. Exit\nYour choice: '
+          '4. Transpose matrix\n5. Calculate a determinant\n6. Inverse matrix\n0. Exit\nYour choice: '
     while (user_input := input(msg)) != '0':
         if user_input == '1':
             print(Matrix() + Matrix())
@@ -106,6 +125,8 @@ def main_menu():
             transpose_menu()
         elif user_input == '5':
             print(Matrix().determinant())
+        elif user_input == '6':
+            print(Matrix().inverse())
 
 
 if __name__ == '__main__':
