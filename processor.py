@@ -59,6 +59,25 @@ class Matrix:
     def transposition_horz_line(self):
         return [i for i in self.matrix[::-1]]
 
+    def determinant(self):
+        if self.cols != self.rows:
+            raise MatrixDimensionError
+
+        def minor(matrix, i, j):
+            return [row[:j] + row[j+1:] for row in (matrix[:i] + matrix[i + 1:])]
+
+        def calc_determinant(matrix):
+            if len(matrix) == 1:
+                return matrix[0][0]
+            if len(matrix) == 2:
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+            determinant = 0
+            for c in range(len(matrix)):
+                determinant += ((-1)**c) * matrix[0][c] * calc_determinant(minor(matrix, 0, c))
+            return determinant
+
+        return calc_determinant(self.matrix)
+
 
 def transpose_menu():
     print('1. Main diagonal', '2. Side diagonal', '3. Vertical line', '4. Horizontal line', sep='\n')
@@ -75,7 +94,7 @@ def transpose_menu():
 
 def main_menu():
     msg = '1. Add matrices\n2. Multiply matrix by a constant\n3. Multiply matrices\n' \
-          '4. Transpose matrix\n0. Exit\nYour choice: '
+          '4. Transpose matrix\n5. Calculate a determinant\n0. Exit\nYour choice: '
     while (user_input := input(msg)) != '0':
         if user_input == '1':
             print(Matrix() + Matrix())
@@ -85,6 +104,8 @@ def main_menu():
             print(Matrix() * Matrix())
         elif user_input == '4':
             transpose_menu()
+        elif user_input == '5':
+            print(Matrix().determinant())
 
 
 if __name__ == '__main__':
